@@ -1,0 +1,223 @@
+---
+
+#### Defensive Programming
+# https://github.com/openshift/openshift-ansible/blob/master/docs/best_practices_guide.adoc
+
+- name: Fail for Missing Transfer Method
+  fail: msg="This role requires transfer_method to be set and non empty. See the README"
+  when: transfer_method is not defined or transfer_method == ''
+  tags:
+    - jboss_eap
+
+- name: Fail for Missing Red Hat Network Username
+  fail: msg="This role requires rhn_username to be set and non empty."
+  when: transfer_method == 'csp-to-host' and (rhn_username is not defined or rhn_username == '')
+  tags:
+    - jboss_eap
+
+- name: Fail for Missing Red Hat Network Password
+  fail: msg="This role requires rhn_password to be set and non empty."
+  when: transfer_method == 'csp-to-host' and (rhn_password is not defined or rhn_password == '')
+  tags:
+    - jboss_eap
+
+#### Set Facts
+- name: Set JBoss EAP Download Facts
+  set_fact:
+    jboss_eap_artifact_url: "{{ jboss_eap_artifact_source }}"
+    jboss_eap_artifact_dl_dest: "{{ '/tmp/' + jboss_eap_artifact_name }}"
+    jboss_eap_library_dest: "/opt/{{ jboss_eap_user }}"
+  tags:
+    - jboss_eap
+
+- name: Set JBoss EAP Group Facts
+  set_fact:
+    jboss_eap_group: "{{ jboss_eap_user }}"
+  tags:
+    - jboss_eap
+
+##
+# The version compare allows to decide what version of EAP that is provisioned and
+# use the appropriate init.d scripts and init.d configuraitons
+# In EAP6 its jboss-as-[standalone|domain].sh and jboss-as.conf respectively
+# In EAP7 its jboss-eap-rhel.sh and jboss-eap.conf respectively
+##
+- name: Set JBoss EAP Service Directories Facts
+  set_fact:
+    jboss_eap_home: "{{ jboss_eap_library_dest }}/jboss-eap-{{jboss_eap_base_version}}"
+    jboss_eap_service_conf_dir: "/etc/{{ (jboss_eap_base_version | version_compare('7.0','<')) | ternary(jboss_eap_user,'default')}}"
+    jboss_eap_service_log_dir: "/var/log/{{ jboss_eap_user }}"
+    jboss_eap_service_data_dir: "/var/run/{{ jboss_eap_user }}"
+  tags:
+    - jboss_eap
+
+- name: Set JBoss EAP Service Files Facts
+  set_fact:
+    jboss_eap_service_conf_file: "{{ jboss_eap_service_conf_dir }}/{{ (jboss_eap_base_version | version_compare('7.0','<')) | ternary('jboss-as.conf','jboss-eap.conf')}}"
+    jboss_eap_bin_dir: "{{ jboss_eap_home }}/bin"
+    jboss_eap_runtime_conf_file: "{{ jboss_eap_home }}/bin/standalone.conf"
+    jboss_eap_service_file: "{{ (jboss_eap_base_version | version_compare('7.0','<')) | ternary('jboss-as-'+jboss_eap_mode+'.sh','jboss-eap-rhel.sh')}}"
+  tags:
+    - jboss_eap
+
+##
+# RHEL 6 expects init.d service with extension
+##
+- name: Set JBoss EAP Service Name EL 6
+  set_fact:
+    jboss_eap_service_name: "{{jboss_eap_service_file}}"
+  when: (ansible_distribution_major_version | version_compare('6','<='))
+  tags:
+    - jboss_eap
+
+##
+# RHEL 7 expects init.d service without extension
+##
+- name: Set JBoss EAP Service Name EL 7
+  set_fact:
+    jboss_eap_service_name: "{{jboss_eap_service_file | splitext | first }}"
+  when: (ansible_distribution_major_version | version_compare('7','>='))
+  tags:
+    - jboss_eap
+
+- debug: msg="EAP HOME {{ jboss_eap_home }} and Service file {{jboss_eap_service_file}}  Service Name {{jboss_eap_service_name}}"
+
+#### Create Service Account
+
+- include: jboss_service.yml
+
+#### Defensive Programming To Check If EAP Is Already Installed
+
+- name: Check Existence of Libraries
+  become: true
+  stat:
+    path: "{{ jboss_eap_library_dest + '/jboss-eap-7.0/version.txt'}}"
+  register: jboss_eap_exists
+  tags:
+    - jboss_eap
+
+- name: Async Download JBoss EAP by URL (HTTP/HTTPS/FTP)
+  get_url:
+    url: "{{ jboss_eap_artifact_url }}"
+    dest: "{{ jboss_eap_artifact_dl_dest }}"
+    url_username: "{{ url_username | default(None) }}"
+    url_password: "{{ url_password | default(None) }}"
+  async: 7200
+  poll: 0
+  register: url_jboss_eap_download
+  tags:
+    - jboss_eap
+  when: transfer_method == 'url' and jboss_eap_exists.stat.exists == false
+
+- name: Check On JBoss EAP Download Completion (URL)
+  async_status: jid={{ url_jboss_eap_download.ansible_job_id }}
+  register: job_result1
+  until: job_result1.finished
+  retries: 600
+  delay: 10
+  tags:
+    - jboss_eap
+  when: transfer_method == 'url' and jboss_eap_exists.stat.exists == false
+
+- name: Async Download JBoss EAP from Red Hat Customer Portal
+  redhat_csp_download:
+    url: "{{ jboss_eap_artifact_url }}"
+    dest: "{{ jboss_eap_artifact_dl_dest }}"
+    username: "{{ rhn_username }}"
+    password: "{{ rhn_password }}"
+  async: 7200
+  poll: 0
+  register: csp_jboss_eap_download
+  tags:
+    - jboss_eap
+  when: transfer_method == 'csp-to-host' and jboss_eap_exists.stat.exists == false
+
+- name: Check On JBoss EAP Download Completion (CSP)
+  async_status: jid={{ csp_jboss_eap_download.ansible_job_id }}
+  register: job_result1
+  until: job_result1.finished
+  retries: 600
+  delay: 10
+  tags:
+    - jboss_eap
+  when: transfer_method == 'csp-to-host' and jboss_eap_exists.stat.exists == false
+  ignore_errors: yes
+
+- name: Copy JBoss EAP
+  copy:
+    src: "{{ jboss_eap_artifact_name }}"
+    dest: "{{ jboss_eap_artifact_dl_dest }}"
+  tags:
+    - jboss_eap
+  when: transfer_method == 'copy-from-controller' and jboss_eap_exists.stat.exists == false
+
+- name: Extract JBoss EAP Libraries
+  become: true
+  unarchive:
+    src: "{{ jboss_eap_artifact_dl_dest }}"
+    dest: "{{ jboss_eap_library_dest }}"
+    creates: jboss-eap-7.0
+    copy: no
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+  tags:
+    - jboss_eap
+  when: jboss_eap_exists.stat.exists == false
+
+## Copy jboss-as-{{jboss_eap_mode}}.sh or jboss-eap-rhel.sh file to /etc/init.d
+- name: Copy JBoss EAP Service File
+  become: true
+  copy:
+    src: "{{jboss_eap_bin_dir}}/init.d/{{jboss_eap_service_file}}"
+    dest: /etc/init.d
+    remote_src: True
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+    mode: "755"
+  notify:
+    - Restart jboss-as Service
+    - Verify jboss-as is running
+  tags:
+    - jboss_eap
+
+- include: apply_patch.yml
+
+- name: Add jboss-as Service
+  become: true
+  command: "chkconfig --add {{jboss_eap_service_file}}"
+  tags:
+    - jboss_eap
+
+- name: Enable jboss-as Service
+  become: true
+  service:
+    name: "{{jboss_eap_service_file}}"
+    enabled: yes
+  tags:
+    - jboss_eap
+  ignore_errors: yes
+
+#### Set Sensible Defaults For Runtime
+
+- name: Set Web Bind Address
+  lineinfile:
+    dest: "{{ jboss_eap_runtime_conf_file }}"
+    line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address={{jboss_eap_bind_web_address}}"
+  when: jboss_eap_bind_web_interface
+  tags:
+    - jboss_eap
+
+- name: Set Management Bind Address
+  lineinfile:
+    dest: "{{ jboss_eap_runtime_conf_file }}"
+    line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address.management={{jboss_eap_bind_management_address}}"
+  when: jboss_eap_bind_management_interface
+  tags:
+    - jboss_eap
+
+- name: Set User Time Zone for Logs
+  lineinfile:
+    dest: "{{ jboss_eap_runtime_conf_file }}"
+    line: "JAVA_OPTS=\"$JAVA_OPTS -Duser.timezone={{jboss_eap_logging_timezone}}\""
+  tags:
+    - jboss_eap
