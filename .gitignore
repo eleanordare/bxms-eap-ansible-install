@@ -1,9 +1,0 @@
-*.retry
-fuse6.2-centos7-copy.yml
-fuse6.2-centos7-csp.yml
-fuse6.2-rhel7.yml
-bpms6.3-eap6.4-centos7-copy.yml
-bpms6.3-eap6.4-centos7-csp.yml
-eap6.4-centos7-copy.yml
-eap6.4-centos7-csp.yml
-eap6.4-rhel7.yml
