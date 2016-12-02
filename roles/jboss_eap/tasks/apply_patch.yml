@@ -6,7 +6,7 @@
     jboss_eap_patch_artifact_url: "{{ jboss_eap_patch_artifact_source }}"
     jboss_eap_patch_dest: "/tmp/{{ jboss_eap_patch_artifact_name }}"
   tags:
-    - jboss_eap
+    - jboss_eap_patch
 
 # Currently we only support patching from base (e.g. 6.x.0), not incremental minor release patches as the role is for initial install
 - name: Determine if the Patch Can Be Applied
@@ -14,7 +14,7 @@
   command: "{{ jboss_eap_home }}/bin/jboss-cli.sh 'patch info --verbose'"
   register: patch_info_result
   tags:
-    - jboss_eap
+    - jboss_eap_patch
     - dev
   when: jboss_eap_apply_patch == true and jboss_eap_exists.stat.exists == true
 
@@ -30,7 +30,7 @@
   poll: 0
   register: url_jboss_eap_patch_download
   tags:
-    - jboss_eap
+    - jboss_eap_patch
   when: transfer_method == 'url' and jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
 
 - name: Check On JBoss EAP Patch Download Completion (URL)
@@ -40,7 +40,7 @@
   retries: 600
   delay: 10
   tags:
-    - jboss_eap
+    - jboss_eap_patch
   when: transfer_method == 'url' and jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
 
 - name: Async Download JBoss EAP Patch from Red Hat Customer Portal
@@ -53,7 +53,7 @@
   poll: 0
   register: csp_jboss_eap_patch_download
   tags:
-    - jboss_eap
+    - jboss_eap_patch
   when: transfer_method == 'csp-to-host' and jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
 
 - name: Check On JBoss EAP Patch Download Completion (CSP)
@@ -63,7 +63,7 @@
   retries: 600
   delay: 10
   tags:
-    - jboss_eap
+    - jboss_eap_patch
   when: transfer_method == 'csp-to-host' and jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
   ignore_errors: yes
 
@@ -72,7 +72,7 @@
     src: "{{ jboss_eap_patch_artifact_name }}"
     dest: "{{ jboss_eap_patch_dest }}"
   tags:
-    - jboss_eap
+    - jboss_eap_patch
   when: transfer_method == 'copy-from-controller' and jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
 
 # Patches can be applied while EAP is running
@@ -83,6 +83,6 @@
     - Restart jboss-as Service
     - Verify jboss-as is running
   tags:
-    - jboss_eap
+    - jboss_eap_patch
     - dev
   when: jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)

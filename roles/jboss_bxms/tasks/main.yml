@@ -100,6 +100,8 @@
 
 - include: java_opts.yml
 
+- include: apply_patch.yml
+
 - include: configure_roles.yml
 
 - include: install_login_module.yml
