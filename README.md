@@ -1,31 +1,20 @@
-# ansible-middleware-playbooks [![Build Status](https://travis-ci.org/rhtconsulting/ansible-middleware-playbooks.svg)](https://travis-ci.org/rhtconsulting/ansible-middleware-playbooks)
+# ansible-middleware-playbooks
 
 ## Purpose
-
-This repository provides a set of generic roles and reusable playbooks for deploying JBoss Middleware and associated CI / CD tooling.
+These playbooks install and configure BxMS 6.4 and EAP 7. Additional playbooks are included to apply future patches, configure roles in BPMS, and add custom login modules to Business Central.
 
 ## Getting Started
 
 1. Update group_vars/all/all.yml to reflect your environment
 2. Update inventory.yml to reflect your environment
-3. Run `ansible-galaxy install -r roles/requirements.yml -p ./roles` to download required roles from galaxy.
 
-## Roles Used By These Playbooks
-
-1. [JBoss Common](https://github.com/rhtconsulting/ansible-role-jboss-common)
-2. [JBoss EAP](https://github.com/rhtconsulting/jboss_eap)
-3. [JBoss BxMS](https://github.com/rhtconsulting/jboss_bxms)
-4. [JBoss Fuse](https://github.com/rhtconsulting/jboss_fuse)
-
-## Ansible Install and Version
-We are currently working against ansible 2.1.1.0. `pip` is the preferred installed method for now: `pip install ansible==2.1.1.0`
 
 ## Transfer Methods
 
 These playbooks and their required roles support a few different mechanisms for transferring the product zip files to the target host. You can set the variable `transfer_method` to select the method, which can be set at multiple levels. The default is set in [group vars](https://github.com/rhtconsulting/ansible-middleware-playbooks/blob/master/group_vars/all/all.yml).
 
 ### csp-to-host
-This method uses the [custom redhat_csp_download module](https://github.com/sabre1041/redhat-csp-download) to download the product binaries from the [Red Hat Customer Portal](https://access.redhat.com/downloads/). This requires network access from the target host to the Red Hat Customer Portal, but has the advantage of being fully automated. Each of the roles have sensible defaults already set.
+This method uses the [custom Red Hat_CSP_download module](https://github.com/sabre1041/redhat-csp-download) to download the product binaries from the [Red Hat Customer Portal](https://access.redhat.com/downloads/). This requires network access from the target host to the Red Hat Customer Portal, but has the advantage of being fully automated. Each of the roles have sensible defaults already set.
 
 The following variables are required:
 - `rhn_username`
@@ -36,19 +25,16 @@ This method requires you to download the product binaries from the [Red Hat Cust
 
 The easiest way to provide the files to your role is to symlink them to the role_name/files directory. If you files are not named the same as the files on the customer portal, you can override the file name using the `*_artifact_name` variables.
 
-## CI and Testing 
 
-All of the roles are using some variation of [Chris Meyer's](https://github.com/chrismeyersfsu) incredible [Travis CI, Docker and Ansible role testing method](https://www.ansible.com/blog/testing-ansible-roles-with-docker).
+## Applying Patches
+The apply_patch.yml tasks in roles/jboss_bxms and roles/jboss_eap can be updated with the appropriate patch download links from the [Red Hat Customer Portal](https://access.redhat.com/downloads/). To include the patch while running the playbook, change the `jboss_bxms_apply_patch` and `jboss_eap_apply_patch` variables to `true`. You can also run only the apply-patch tasks by adding the tag(s): `ansible-playbook bxms6.4-eap7.0-centos7-csp.yml --tags "jboss_bxms_patch,jboss_eap_patch"`.
+
 
 ## Red Hat Subscriptions
 
 These playbooks require binaries from the [Red Hat Customer Portal](https://access.redhat.com/downloads/), so you'll need a valid subscription. Developers can get a $0 subscription through the [Red Hat Developer Program](http://developers.redhat.com/products/eap/download/).
 
 
-## Best Practices
 
-We're trying to follow the [OpenShift Ansible Best Practices](https://github.com/openshift/openshift-ansible/blob/master/docs/best_practices_guide.adoc)
-
-## Relevant Links
-
-[Ansible roles](http://docs.ansible.com/ansible/playbooks_roles.html "Ansible Roles")
+## Credit
+Adapted from the Red Hat Consulting [JBoss Middleware Playbooks](https://github.com/rhtconsulting/ansible-middleware-playbooks).
