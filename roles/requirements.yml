@@ -1,4 +1,4 @@
-- src: rhtconsulting.jboss_eap
+- src: eleanordare.jboss_eap
   name: jboss_eap
 
 - src: rhtconsulting.jboss_common
@@ -7,8 +7,5 @@
 - src: sabre1041.redhat-csp-download
   name: redhat-csp-download
 
-- src: rhtconsulting.jboss_bxms
+- src: eleanordare.jboss_bxms
   name: jboss_bxms
-
-#- src: rhtconsulting.jboss_fuse
-#  name: jboss_fuse
