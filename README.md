@@ -1,4 +1,4 @@
-# ansible-middleware-playbooks
+# bxms-eap-ansible-install
 
 ## Purpose
 These playbooks install and configure BxMS 6.4 and EAP 7. Additional playbooks are included to apply future patches, configure roles in BPMS, and add custom login modules to Business Central.
