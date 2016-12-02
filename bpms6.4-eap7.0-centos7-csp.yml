@@ -1,0 +1,29 @@
+- hosts: localhost
+  remote_user: "{{ ansible_centos_user }}"
+  become: true
+  gather_facts: true
+
+  vars:
+    transfer_method: csp-to-host
+
+  vars_prompt:
+  - name: "rhn_username"
+    prompt: "Enter Your Red Hat Customer Portal Username"
+    private: no
+
+  - name: "rhn_password"
+    prompt: "Enter Your Red Hat Customer Portal Password"
+    private: yes
+
+  - name: "role_to_change"
+    prompt: "Enter the role you would like to change"
+    private: no
+
+  - name: "new_role"
+    prompt: "Enter the role you would like to change it to"
+    private: no
+
+  roles:
+  - jboss_common
+  - jboss_eap
+  - jboss_bxms

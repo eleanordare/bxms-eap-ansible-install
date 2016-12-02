@@ -6,7 +6,7 @@ install:  pip install ansible==1.9.6
 # command to run tests
 script:
   - ansible-galaxy install -r roles/requirements.yml -p ./roles
-  - ansible-playbook -i inventory eap6.4-centos7-copy.yml --syntax-check
+  - ansible-playbook -i inventory eap7.0-centos7-copy.yml --syntax-check
 
 notifications:
   slack: redhat:GhPEcNzYddt4Pf9OJW2wcyCK
