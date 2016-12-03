@@ -11,7 +11,7 @@ These playbooks install and configure BxMS 6.4 and EAP 7. Additional playbooks a
 
 ## Transfer Methods
 
-These playbooks and their required roles support a few different mechanisms for transferring the product zip files to the target host. You can set the variable `transfer_method` to select the method, which can be set at multiple levels. The default is set in [group vars](https://github.com/rhtconsulting/ansible-middleware-playbooks/blob/master/group_vars/all/all.yml).
+These playbooks and their required roles support a few different mechanisms for transferring the product zip files to the target host. You can set the variable `transfer_method` to select the method, which can be set at multiple levels. The default is set in [group vars](https://github.com/eleanordare/bxms-eap-ansible-install/tree/master/group_vars/all/all.yml).
 
 ### csp-to-host
 This method uses the [custom Red Hat_CSP_download module](https://github.com/sabre1041/redhat-csp-download) to download the product binaries from the [Red Hat Customer Portal](https://access.redhat.com/downloads/). This requires network access from the target host to the Red Hat Customer Portal, but has the advantage of being fully automated. Each of the roles have sensible defaults already set.
