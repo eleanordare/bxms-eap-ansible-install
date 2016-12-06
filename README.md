@@ -5,11 +5,11 @@ These playbooks install and configure BxMS 6.4 and EAP 7. Additional playbooks a
 
 ## Getting Started
 1. Clone this git repo to your host machine (`git clone https://github.com/eleanordare/bxms-eap-ansible-install.git`).
-2. Make sure Ansible is installed on your host.
+2. Make sure Ansible is installed on your host (`sudo yum install ansible`).
 3. Update group_vars/all/all.yml to reflect your environment.
 4. Update inventory to reflect your environment.
-5. Update the main bxms6.4-eap7.0-centos7.yml playbook with your transfer method of choice (see below).
-5. Run `ansible-playbook bxms6.4-eap7.0-centos7.yml` on host.
+5. Update the main bxms6.4-eap7.0-centos7.yml playbook with your transfer method of choice (see below). If you're installing with the copy-from-controller transfer method, make sure to have your product files downloaded and referenced with the proper variables.
+6. Run `ansible-playbook bxms6.4-eap7.0-centos7.yml` on host.
 
 ## Transfer Methods
 
@@ -29,7 +29,7 @@ The easiest way to provide the files to your role is to symlink them to the role
 
 
 ## Applying Patches
-The apply_patch.yml tasks in roles/jboss_bxms and roles/jboss_eap can be updated with the appropriate patch download links from the [Red Hat Customer Portal](https://access.redhat.com/downloads/). To include the patch while running the playbook, change the `jboss_bxms_apply_patch` and `jboss_eap_apply_patch` variables to `true`. You can also run only the apply-patch tasks by adding the tag(s): `ansible-playbook bxms6.4-eap7.0-centos7-csp.yml --tags "jboss_bxms_patch,jboss_eap_patch"`.
+The apply_patch.yml tasks in roles/jboss_bxms and roles/jboss_eap can be updated with the appropriate patch download links from the [Red Hat Customer Portal](https://access.redhat.com/downloads/). To include the patch while running the playbook, change the `jboss_bxms_apply_patch` and `jboss_eap_apply_patch` variables to `true`. You can also run only the apply-patch tasks by adding the tag(s): `ansible-playbook bxms6.4-eap7.0-centos7.yml --tags "jboss_bxms_patch,jboss_eap_patch"`.
 
 
 ## Red Hat Subscriptions
