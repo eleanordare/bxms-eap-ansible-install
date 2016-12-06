@@ -1,4 +1,4 @@
-- hosts: all
+- hosts: localhost
   remote_user: "{{ ansible_centos_user }}"
   become: true
   gather_facts: true

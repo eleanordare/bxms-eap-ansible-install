@@ -10,22 +10,22 @@
   when: ansible_distribution == 'RedHat'
 
 - name: Install Java
-  action: "dnf name={{ jboss_java_pkg_name }} state=latest"
+  action: "{{ ansible_pkg_mgr }} name={{ jboss_java_pkg_name }} state=latest"
   tags:
   - common
 
 - name: Install Unzip
-  action: "dnf name=unzip state=latest"
+  action: "{{ ansible_pkg_mgr }} name=unzip state=latest"
   tags:
   - common
 
 - name: Install initscripts
-  action: "dnf name=initscripts state=latest"
+  action: "{{ ansible_pkg_mgr }} name=initscripts state=latest"
   tags:
   - common
 
 - name: Install EPEL for CentOS
-  action: "dnf name=epel-release state=latest"
+  action: "{{ ansible_pkg_mgr }} name=epel-release state=latest"
   tags:
   - common
   when: transfer_method == 'csp-to-host' and ansible_distribution == 'CentOS'
@@ -51,13 +51,13 @@
   when: transfer_method == 'csp-to-host' and ansible_distribution == 'RedHat'
 
 - name: Install EPEL for RHEL
-  action: "dnf name=/tmp/epel-release-latest-7.noarch.rpm state=present"
+  action: "{{ ansible_pkg_mgr }} name=/tmp/epel-release-latest-7.noarch.rpm state=present"
   tags:
   - common
   when: transfer_method == 'csp-to-host' and ansible_distribution == 'RedHat'
 
 - name: Install PIP
-  action: "dnf name=python-pip state=latest"
+  action: "{{ ansible_pkg_mgr }} name=python-pip state=latest"
   tags:
   - common
   when: transfer_method == 'csp-to-host'
@@ -74,7 +74,7 @@
   when: transfer_method == 'csp-to-host'
 
 - name: Remove EPEL Package
-  action: "dnf name='epel*' state=absent"
+  action: "{{ ansible_pkg_mgr }} name='epel*' state=absent"
   tags:
   - common
   when: transfer_method == 'csp-to-host'
