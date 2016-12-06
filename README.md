@@ -4,10 +4,10 @@
 These playbooks install and configure BxMS 6.4 and EAP 7. Additional playbooks are included to apply future patches, configure roles in BPMS, and add custom login modules to Business Central.
 
 ## Getting Started
-
-1. Update group_vars/all/all.yml to reflect your environment
-2. Update inventory.yml to reflect your environment
-
+1. Make sure Ansible is installed on your host.
+2. Update group_vars/all/all.yml to reflect your environment (and choose transfer method, see below).
+3. Update inventory to reflect your environment.
+4. Run `ansible-playbook bxms6.4-eap7.0-centos7.yml` on host.
 
 ## Transfer Methods
 
